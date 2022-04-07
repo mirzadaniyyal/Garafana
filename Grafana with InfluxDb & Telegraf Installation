@@ -1,0 +1,144 @@
+InfluxDb Installation
+1. Import GPG key.
+
+sudo curl -sL https://repos.influxdata.com/influxdb.key | sudo apt-key add -
+
+
+2. Then Add InfluxDb APT repository.
+
+echo "deb https://repos.influxdata.com/ubuntu focal stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+
+
+3. Once the repository is added, proceed to update your Apt repositories and install InfluxDb.
+
+sudo apt-get update
+
+
+
+sudo apt-get install influxdb
+
+
+4. Start and enable the service to start on boot up.
+
+sudo systemctl enable influxdb
+
+
+5. systemctl status influxdb
+
+The output would be:
+**influxdb.service - InfluxDB is an open-source, distributed, time series database Loaded: loaded (/lib/systemd/system/influxdb.service; enabled; vendor preset: enabled) Active: active (running) since Tue 2020-05-05 21:50:57 CEST; 23s ago Docs: man:influxd(1) Main PID: 1752 (influxd) Tasks: 9 (limit: 2286) Memory: 3.5M CGroup: /system.slice/influxdb.service └─1752 /usr/bin/influxd -config /etc/influxdb/influxdb.conf**
+
+
+6. If you need http authentication, modify influxdb http section to contain the following.
+
+sudo vim /etc/influxdb/influxdb.conf
+
+
+
+[http]
+
+auth-enabled = true
+
+
+Then restart influxdb service
+
+
+sudo systemctl restart influxdb
+
+
+
+7. Create a user telegraf with an authentication password.
+
+curl -XPOST "http://localhost:8086/query" \
+  --data-urlencode "q=CREATE USER telegraf WITH PASSWORD 'strongpassword' WITH ALL PRIVILEGES"
+
+
+
+Replace:
+
+username with your own username
+strongpassword with your own password (note that the password requires single quotes)
+
+
+
+8. Whenever you need to run any influxdb commands on the terminal, you need to specify username using -username and password using -password options.
+
+influx -username 'username' -password 'password'
+
+9. Create a Database telegraf.
+
+influx -username 'telegraf' -password 'strongpassword'
+Type create databse telegraf
+Type show databases to verify the database.
+Then type exit.
+
+Telegraf Agent Installation
+Note: Installation of the Telegraf package may require root or administrator privileges in order to complete successfully.
+1. Install Telegraf from the InfluxData repository with the following commands.
+
+wget -qO- https://repos.influxdata.com/influxdb.key | sudo tee /etc/apt/trusted.gpg.d/influxdb.asc >/dev/null
+source /etc/os-release
+
+
+
+echo "deb https://repos.influxdata.com/${ID} ${VERSION_CODENAME} stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+
+
+
+sudo apt-get update && sudo apt-get install telegraf
+
+
+Telegraf Agent Configuration
+1. Create a file named my_config_telegraf.conf in /etc/telegraf/telegraf.d/ directory and then run the following command.
+
+telegraf config -input-filter cpu:mem:disk:swap:system:net:netstat -output-filter influxdb > my_config_telegraf.conf
+
+
+2. Edit my_config_telegraf.conf file and search and set the options mentioned below.
+
+
+Config File: my_config_telegraf.conf
+
+
+
+Global Agent Configuration
+
+[agent]
+hostname = "Grafana" (should be set "" empty so system would take the name on its own or you can specify tha name of your host.
+flush_interval = "10s"
+interval = "10s"
+
+
+
+
+Input Plugins
+
+[/[inputs.cpu]]
+percpu = true
+totalcpu = true
+collect_cpu_time = false
+report_active = false
+[/[inputs.disk]]
+ignore_fs = ["tmpfs", "devtmpfs", "devfs"]
+[/[inputs.io]]
+[/[inputs.mem]]
+[/[inputs.net]]
+[/[inputs.system]]
+[/[inputs.swap]]
+[/[inputs.netstat]]
+[/[inputs.processes]]
+[/[inputs.kernel]]
+
+
+
+
+Output Plugin InfluxDB
+
+
+[/[outputs.influxdb]]
+
+database = "telegraf"
+urls = [ "http://127.0.0.1:8086" ] (The url of your localhost)
+username = "telegraf"
+password = "myP@ssw0rd"
+Remove "/" between brackets while searching.
