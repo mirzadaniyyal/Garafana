@@ -1,0 +1,60 @@
+Grafana Installation
+1. Update system
+
+sudo apt update && sudo apt upgrade
+
+
+2. Add Grafana gpg key which allows you to install signed packages.
+
+sudo apt-get install -y gnupg2 curl software-properties-common
+curl https://packages.grafana.com/gpg.key | sudo apt-key add -
+
+
+3. Then Add Grafana APT repository.
+
+sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+
+
+4. Once the repository is added, proceed to update your Apt repositories and install Grafana.
+
+sudo apt-get update
+
+
+
+sudo apt-get -y install grafana
+
+
+5. Start Grafana service.
+
+sudo systemctl enable grafana-server
+
+
+6. systemctl status grafana-server.service.
+
+The output would be:
+**grafana-server.service - Grafana instance Loaded: loaded (/usr/lib/systemd/system/grafana-server.service; disabled; vendor preset: enabled) Active: active (running) since Sun 2020-01-19 13:01:06 UTC; 17s ago Docs: http://docs.grafana.org  Main PID: 15616 (grafana-server) Tasks: 10 (limit: 2362) CGroup: /system.slice/grafana-server.service └─15616 /usr/sbin/grafana-server --config=/etc/grafana/grafana.ini --pidfile=/var/run/grafana/grafana-server.pid --packaging=deb cfg:default.**
+
+
+7. Grafana default http port is 3000, you’ll need to allow access to this port on the firewall. Ubuntu comes with ufw firewall. For Debian, you can install it using:
+
+sudo apt -y install ufw
+
+
+
+sudo ufw enable
+
+
+
+sudo ufw allow ssh
+
+
+
+sudo ufw allow 3000/tcp
+
+
+8. Access Grafana Dashboard using the server IP address or hostname and port 3000.
+
+
+http://localhost:3000/ (use your IP instead of local host) for eg http://127.0.0.1:3000/.
+
+Default logins are admin for both Username & Password.
