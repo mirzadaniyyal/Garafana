@@ -1,0 +1,61 @@
+Step 1: Download the latest version of mysqld_exporter
+
+Execute:
+
+
+mkdir mysqld-exporter
+cd mysqld-exporter
+wget https://github.com/prometheus/mysqld_exporter/releases/download/v0.11.0/mysqld_exporter-0.11.0.linux-amd64.tar.gz
+
+
+Step 2: Extract the downloaded archive in your current folder
+
+Execute:
+
+
+tar xvzf mysqld_exporter-0.11.0.linux-amd64.tar.gz
+
+
+Step 3: Create a user for Prometheus
+
+Execute:
+
+
+cd mysqld_exporter-0.11.0.linux-amd64/
+sudo mv mysqld_exporter /usr/local/bin/
+
+sudo useradd -rs /bin/false prometheus
+sudo vi /lib/systemd/system/mysql_exporter.service
+
+
+[Unit]
+
+
+Description=MySQL Exporter
+User=prometheus
+
+
+[Service]
+
+
+Type=simple
+Restart=always
+ExecStart=/usr/local/bin/mysqld_exporter \
+--config.my-cnf /etc/.exporter.cnf \
+--collect.auto_increment.columns \
+--collect.binlog_size \
+--collect.engine_innodb_status \
+--collect.engine_tokudb_status \
+--collect.global_status \
+--web.listen-address=0.0.0.0:9104
+
+
+[Install]
+
+
+WantedBy=multi-user.target
+sudo systemctl daemon-reload
+systemctl status mysql_exporter
+
+Default port is 9104 metrics for mysqld_exporter(http://< ip_address >:9104)
+
